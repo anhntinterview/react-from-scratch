@@ -1,0 +1,23 @@
+{
+  "name": "custom-react",
+  "version": "1.0.0",
+  "description": "",
+  "main": "useFn.js",
+  "scripts": {
+    "dev": "concurrently \"tsc --watch\" \"live-server --port=3000\"",
+    "build": "tsc",
+    "start": "pnpm dev",
+    "prod": "node dist/useFn.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^22.13.5",
+    "concurrently": "^9.1.2",
+    "live-server": "^1.2.2",
+    "ts-node": "^10.9.2",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.7.3"
+  }
+}
