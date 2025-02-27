@@ -29,16 +29,36 @@ export const randomColor = (): string => {
 };
 
 // Custom useEffect
-export const useEffect = (callback: () => void, getState: () => unknown) => {
-  console.log("useEffect initialized");
-  const listener = () => {
-    console.log("State changed, calling effect");
-    callback();
-  };
-  listener(); // Chạy effect ngay lần đầu
+export const useEffect = <T>(
+  callback: () => void,
+  getState: () => T,
+  subscribe: (listener: (newState: T) => void) => void
+) => {
+  let previousValue = getState();
+  /**
+   * Run at first time
+   * /
+  let isFirstRun = true;
 
-  // Đăng ký listener vào state (nếu getState có hỗ trợ subscribe)
-  if (typeof getState === "function" && "subscribe" in getState) {
-    (getState as any).subscribe(listener);
-  }
+  subscribe((newValue) => {
+    if (isFirstRun) {
+      isFirstRun = false;
+      return;
+    }
+    if (newValue !== previousValue) {
+      previousValue = newValue;
+      callback();
+    }
+  });
+  */
+
+  subscribe((newValue) => {
+    if (newValue !== previousValue) {
+      previousValue = newValue;
+      callback();
+    }
+  });
+
+  // Gọi callback ngay lần đầu tiên
+  callback();
 };

@@ -1,7 +1,7 @@
 import { useState, useEffect, randomColor } from "./stateFn.js";
 
 // Khởi tạo state count với giá trị ban đầu là 0
-const [getCount, setCount, subscribe] = useState<number>(0);
+const [getCount, setCount, subscribeCount] = useState<number>(0);
 
 // Định nghĩa hàm xử lý sự kiện
 const handleIncrement = () => {
@@ -51,10 +51,14 @@ if (typeof window !== "undefined") {
       }
     });
 
-    // Đăng ký useEffect để cập nhật UI và màu nền khi count thay đổi
-    subscribe(() => {
-      updateUI();
-      document.body.style.backgroundColor = randomColor();
-    });
+    useEffect(
+      () => {
+        document.body.style.backgroundColor = randomColor();
+      },
+      getCount,
+      subscribeCount
+    );
+
+    useEffect(updateUI, getCount, subscribeCount);
   };
 }
