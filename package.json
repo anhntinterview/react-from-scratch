@@ -6,8 +6,7 @@
   "scripts": {
     "dev": "concurrently \"tsc --watch\" \"live-server --port=3000\"",
     "build": "tsc",
-    "start": "pnpm dev",
-    "prod": "node dist/useFn.js"
+    "start": "pnpm dev"
   },
   "keywords": [],
   "author": "",

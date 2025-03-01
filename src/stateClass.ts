@@ -1,10 +1,23 @@
 export class CustomState<T> {
   private state: T;
-  // private listeners: ((newState: T) => unknown)[] = [];
   /**
-   * Dùng Set chứa các hàm callback tối ưu hóa bị leak memory
+   * 01. Dùng Array để lưu danh sách callback
    */
-  private listeners: Set<(newState: T) => void> = new Set();
+  // private listeners: ((newState: T) => unknown)[] = [];
+
+  /**
+   * 02. Dùng Set để lưu danh sách callback
+   */
+  // private listeners: Set<(newState: T) => void> = new Set();
+
+  /**
+   * 03. Dùng WeakMap để lưu danh sách callback theo key của object
+   */
+  // Vì WeakMap không hỗ trợ lặp qua tất cả phần tử,
+  // ta sẽ dùng một Set để lưu danh sách key của WeakMap,
+  // giúp gọi từng callback mà vẫn giữ cơ chế tự động dọn dẹp.
+  private listeners = new WeakMap<object, (newState: T) => unknown>();
+  private keys = new Set<object>(); // Lưu danh sách key để truy cập callback trong WeakMap
 
   constructor(initialValue: T) {
     this.state = initialValue;
@@ -14,32 +27,68 @@ export class CustomState<T> {
     return this.state;
   }
 
+  /**
+   * 01. setState với Array
+   * @param newValue giá trị mới của state
+   */
   // setState(newValue: T): void {
   //   this.state = newValue;
   //   this.listeners.forEach((listener) => listener(newValue));
   // }
   /**
-   * setState mới tối ưu hóa bị leak memory
+   * 02. setState với Set
+   * @param newValue giá trị mới của state
+   */
+  // setState(newValue: T): void {
+  //   if (this.state !== newValue) {
+  //     this.state = newValue;
+  //     this.listeners.forEach((listener) => listener(newValue));
+  //   }
+  // }
+  /**
+   * 03. setState với WeakMap & Set
    * @param newValue giá trị mới của state
    */
   setState(newValue: T): void {
-    if (this.state !== newValue) {
-      this.state = newValue;
-      this.listeners.forEach((listener) => listener(newValue));
-    }
+    if (this.state === newValue) return;
+
+    this.state = newValue;
+    this.keys.forEach((key) => {
+      const callback = this.listeners.get(key);
+      if (callback) callback(newValue);
+    });
   }
 
+  /**
+   * 01. subscribe với Array
+   * @param listener hàm callback
+   */
   // subscribe(listener: (newState: T) => void): void {
   //   this.listeners.push(listener);
   // }
+
   /**
-   * subscribe mới tối ưu hóa bị leak memory
+   * 02. subscribe với Set
    * @param listener hàm callback
-   * @returns
+   */
+  // subscribe(listener: (newState: T) => void): () => void {
+  //   this.listeners.add(listener);
+  //   return () => this.listeners.delete(listener); // Trả về hàm để hủy đăng ký
+  // }
+
+  /**
+   * 02. subscribe với WeakMap & Set
+   * @param listener hàm callback
    */
   subscribe(listener: (newState: T) => void): () => void {
-    this.listeners.add(listener);
-    return () => this.listeners.delete(listener); // Trả về hàm để hủy đăng ký
+    const key = {}; // Key ẩn danh để WeakMap theo dõi
+    this.listeners.set(key, listener);
+    this.keys.add(key); // Lưu key để gọi lại sau
+
+    return () => {
+      this.listeners.delete(key);
+      this.keys.delete(key);
+    };
   }
 }
 
@@ -52,7 +101,11 @@ export const randomColor = (): string => {
   return `#${Math.floor(Math.random() * 16777215).toString(16)}`;
 };
 
-// // Custom useEffect
+/**
+ * useEffect tương tự với React để thực thi callback khi state thay đổi
+ * @param callback hàm callback
+ * @param state state cần theo dõi
+ */
 // export const myEffect = (callback: () => void, state: CustomState<unknown>) => {
 //   console.log("useEffect initialized"); // Kiểm tra effect được khởi tạo
 //   state.subscribe(() => {
@@ -60,17 +113,16 @@ export const randomColor = (): string => {
 //     callback();
 //   });
 // };
+
 /**
  * myEffect mới tối ưu hóa bị leak memory
  * @param callback
  * @param state
  * @returns
  */
-export const myEffect = (callback: () => void, state: CustomState<unknown>) => {
-  console.log("useEffect initialized");
-  const unsubscribe = state.subscribe(() => {
-    console.log("State changed, calling effect");
-    callback();
-  });
-  return unsubscribe; // Trả về hàm để hủy effect nếu cần
+export const myEffect = (
+  callback: () => void,
+  state: CustomState<unknown>
+): (() => void) => {
+  return state.subscribe(callback);
 };

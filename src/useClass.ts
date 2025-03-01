@@ -23,14 +23,6 @@ const app = `
   </div>
 `;
 
-/**
- * Tối ưu hóa bị leak memory
- * Hàm unsubscribe tất cả các hàm
- *
- */
-let unsubscribeUI: (() => void) | null = null;
-let unsubscribeEffect: (() => void) | null = null;
-
 // Cập nhật UI khi state thay đổi
 count.subscribe((value) => {
   const counterElement = document.getElementById("counter");
@@ -52,43 +44,10 @@ if (typeof window !== "undefined") {
       }
     });
 
-    // // Áp dụng useEffect để thay đổi màu nền khi count thay đổi
-    // myEffect(() => {
-    //   console.log("Changing background color"); // Debug
-    //   document.body.style.backgroundColor = randomColor();
-    // }, count as CustomState<unknown>);
-
-    /**
-     * Tối ưu hóa bị leak memory
-     * Áp dụng useEffect MỚI để thay đổi màu nền khi count thay đổi
-     *
-     */
-    // Đăng ký cập nhật UI khi state thay đổi và lưu lại hàm unsubscribe
-    unsubscribeUI = count.subscribe((value) => {
-      const counterElement = document.getElementById("counter");
-      if (counterElement) {
-        counterElement.textContent = value.toString();
-      }
-    });
-
-    /**
-     * Tối ưu hóa bị leak memory
-     * Áp dụng myEffect MỚI để thay đổi màu nền và lưu lại hàm unsubscribe
-     *
-     *  */
-    unsubscribeEffect = myEffect(() => {
-      console.log("Changing background color");
+    // Áp dụng useEffect để thay đổi màu nền khi count thay đổi
+    myEffect(() => {
+      console.log("Changing background color"); // Debug
       document.body.style.backgroundColor = randomColor();
     }, count as CustomState<unknown>);
-  };
-
-  /**
-   * Áp dụng myEffect MỚI để thay đổi màu nền và lưu lại hàm unsubscribe
-   * Hủy đăng ký khi trang đóng
-   *
-   *  */
-  window.onpagehide = () => {
-    unsubscribeUI?.();
-    unsubscribeEffect?.();
   };
 }
