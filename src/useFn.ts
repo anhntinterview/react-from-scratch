@@ -20,6 +20,10 @@ const eventHandlers: Record<string, () => void> = {
 };
 
 // Cập nhật UI khi state thay đổi
+subscribeCount(() => {
+  console.log("Count changed");
+  updateUI();
+});
 const updateUI = () => {
   const counterElement = document.getElementById("counter");
   if (counterElement) {
@@ -59,6 +63,10 @@ if (typeof window !== "undefined") {
       subscribeCount
     );
 
-    useEffect(updateUI, getCount, subscribeCount);
+    /**
+     * Cách viết tương đương khi không dùng subscribeCount và getCount
+     *
+     */
+    // useEffect(updateUI, getCount, subscribeCount);
   };
 }

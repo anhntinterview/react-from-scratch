@@ -59,6 +59,6 @@ export const useEffect = <T>(
     }
   });
 
-  // Gọi callback ngay lần đầu tiên
-  callback();
+  // // Gọi callback ngay lần đầu tiên
+  // callback();
 };
